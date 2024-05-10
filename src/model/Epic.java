@@ -1,54 +1,33 @@
 package model;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class Epic extends Task {
-    private final HashMap<Integer, Subtask> subtasks = new HashMap<>();
+    protected ArrayList<Integer> subtaskIds = new ArrayList<>();
 
     public Epic(String name, String description) {
         super(name, description);
     }
 
-    public void addSubtask(Subtask newSubtask) {
-        if (!subtasks.containsKey(newSubtask.getId())) {
-            subtasks.put(newSubtask.getId(), newSubtask);
+    public ArrayList<Integer> getSubtasksIds() {
+        return subtaskIds;
+    }
+
+    public void addSubtaskIds(Subtask newSubtask) {
+        if (!subtaskIds.contains(newSubtask.getId())) {
+            subtaskIds.add(newSubtask.getId());
         }
     }
 
-    public void deleteAllSubtasks() {
-        subtasks.clear();
-    }
-    public void updateStatus() {
-        boolean allSubtasksDone = true;
-        boolean anySubtaskInProgress = false;
-
-        for (Subtask subtask : subtasks.values()) {
-            if (subtask.getStatus() != TaskStatus.DONE) {
-                allSubtasksDone = false;
-            }
-            if (subtask.getStatus() == TaskStatus.IN_PROGRESS) {
-                anySubtaskInProgress = true;
-            }
-        }
-
-        if (allSubtasksDone) {
-            setStatus(TaskStatus.DONE);
-        } else if (anySubtaskInProgress) {
-            setStatus(TaskStatus.IN_PROGRESS);
-        } else {
-            setStatus(TaskStatus.NEW);
-        }
-    }
-
-    public ArrayList<Subtask> getSubtasks() {
-        return new ArrayList<>(subtasks.values());
+    public void deleteAllSubtasksIds() {
+        subtaskIds.clear();
     }
 
     @Override
     public String toString() {
         return "Epic{" +
-                "id=" + id +
+                "subtaskIds=" + subtaskIds +
+                ", id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", status=" + status +
