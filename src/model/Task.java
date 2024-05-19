@@ -1,5 +1,9 @@
 package model;
 
+import model.enums.TaskStatus;
+
+import java.util.Objects;
+
 public class Task {
     private static int idCounter = 1;
     protected int id;
@@ -13,6 +17,13 @@ public class Task {
         this.name = name;
         this.description = description;
         this.status = TaskStatus.NEW;
+    }
+
+    public Task(Task task) {
+        this.id = task.id;
+        this.name = task.name;
+        this.description = task.description;
+        this.status = task.status;
     }
 
     public int getId() {
@@ -51,5 +62,18 @@ public class Task {
                 ", description='" + description + '\'' +
                 ", status=" + status +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Task task = (Task) o;
+        return id == task.id && Objects.equals(name, task.name) && Objects.equals(description, task.description) && status == task.status;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }
