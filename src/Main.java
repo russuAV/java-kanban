@@ -1,4 +1,4 @@
-import managers.InMemoryTaskManager;
+import app.Managers;
 import managers.TaskManager;
 import model.*;
 import model.enums.TaskStatus;
@@ -6,7 +6,7 @@ import model.enums.TaskStatus;
 public class Main {
 
     public static void main(String[] args) {
-        TaskManager manager = new InMemoryTaskManager();
+        TaskManager manager = Managers.getDefault();
 
         // Создание новой задачи
         Task task1 = new Task("Название задачи 1", "Описание задачи 1");

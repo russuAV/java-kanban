@@ -18,6 +18,15 @@ class InMemoryHistoryManagerTest {
     }
 
     @Test
+    public void checkThatNullDoesNotAddToHistory() {
+        Task task1 = new Task("Task1", "Task1");
+        manager.addTask(task1);
+        manager.getTaskById(task1.getId());
+
+        Assertions.assertNotNull(manager.getHistory());
+    }
+
+    @Test
     public void checkThatEpicNotChangeInHistoryList() {
         Epic epic1 = new Epic("epic1", "epic1");
         manager.addEpic(epic1);
