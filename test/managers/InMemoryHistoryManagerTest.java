@@ -8,6 +8,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 
 class InMemoryHistoryManagerTest {
     private TaskManager manager;
@@ -62,5 +66,45 @@ class InMemoryHistoryManagerTest {
 
         Assertions.assertNotEquals(manager.getHistory().getFirst().getName(),
                 manager.getTaskById(task1.getId()).getName());
+    }
+
+    @Test
+    public void addDuplicateTask() {
+        Task task1 = new Task("Task1", "Task1");
+        manager.addTask(task1);
+        manager.getTaskById(task1.getId());
+        manager.addTask(task1);
+        manager.getTaskById(task1.getId());
+
+        List<Task> history = manager.getHistory();
+        assertEquals(1, history.size());
+    }
+
+    @Test
+    public void removeSubtaskAndEpic() {
+        Epic epic1 = new Epic("epic1", "epic1");
+        Subtask subtask1 = new Subtask("Epic1Subtask", "Subtask1", epic1.getId());
+        manager.addEpic(epic1);
+        manager.addSubtask(subtask1);
+        manager.getEpicById(epic1.getId());
+        manager.getSubtaskById(subtask1.getId());
+        assertEquals(2, manager.getHistory().size());
+
+        manager.deleteEpicById(epic1.getId());
+        assertEquals(0, manager.getHistory().size());
+    }
+
+    @Test
+    public void removeAllTasks() {
+        Task task1 = new Task("Task1", "Task1");
+        Task task2 = new Task("Task2", "Task2");
+
+        manager.addTask(task1);
+        manager.addTask(task2);
+        manager.getTaskById(task1.getId());
+        manager.getTaskById(task2.getId());
+
+        manager.deleteAllTasks();
+        assertEquals(0, manager.getHistory().size());
     }
 }
