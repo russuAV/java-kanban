@@ -17,21 +17,21 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    public void checkThatAppAddTaskAndGiveById () {
+    public void checkThatAppAddTaskAndGiveById() {
         Task task1 = new Task("Op1", "Op1");
         manager.addTask(task1);
         Assertions.assertEquals(task1, manager.getTaskById(task1.getId()));
     }
 
     @Test
-    public void checkThatAppAddEpicAndGiveById () {
+    public void checkThatAppAddEpicAndGiveById() {
         Epic epic1 = new Epic("epic1", "epic1");
         manager.addEpic(epic1);
         Assertions.assertEquals(epic1, manager.getEpicById(epic1.getId()));
     }
 
     @Test
-    public void checkThatAppAddESubtaskAndGiveById () {
+    public void checkThatAppAddESubtaskAndGiveById() {
         Epic epic1 = new Epic("epic1", "epic1");
         manager.addEpic(epic1);
         Subtask subtask1 = new Subtask("Epic1Subtask", "Subtask1", epic1.getId());
@@ -74,6 +74,14 @@ class InMemoryTaskManagerTest {
         Assertions.assertEquals(originalSubtaskName, manager.getSubtaskById(subtask1.getId()).getName());
         Assertions.assertEquals(originalSubtaskDescription, manager.getSubtaskById(subtask1.getId()).getDescription());
         Assertions.assertEquals(originalSubtaskId, manager.getSubtaskById(subtask1.getId()).getId());
+    }
 
+    @Test
+    public void shouldRemoveTask() {
+        Task task1 = new Task("Op1", "Op1");
+        manager.addTask(task1);
+        manager.deleteTaskById(task1.getId());
+
+        Assertions.assertEquals(0, manager.getAllTasks().size());
     }
 }

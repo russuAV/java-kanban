@@ -9,6 +9,7 @@ import model.enums.TaskStatus;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class InMemoryTaskManager implements TaskManager {
     private final HashMap<Integer, Task> tasks = new HashMap<>();
@@ -34,11 +35,14 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void deleteAllTasks() {
+        clearCollection(tasks);
         tasks.clear();
     }
 
     @Override
     public void deleteAllEpics() {
+        clearCollection(epics);
+        clearCollection(subtasks);
         epics.clear();
         subtasks.clear();
     }
@@ -48,6 +52,7 @@ public class InMemoryTaskManager implements TaskManager {
         for (Epic epic : epics.values()) {
             epic.deleteAllSubtasksIds();
         }
+        clearCollection(subtasks);
         subtasks.clear();
     }
 
@@ -69,7 +74,7 @@ public class InMemoryTaskManager implements TaskManager {
     public Subtask getSubtaskById(int id) {
         Subtask subtask = subtasks.get(id);
         historyManager.add(subtask);
-        return subtask ;
+        return subtask;
     }
 
     @Override
@@ -144,6 +149,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void deleteTaskById(int id) {
         tasks.remove(id);
+        historyManager.remove(id);
     }
 
     @Override
@@ -152,15 +158,18 @@ public class InMemoryTaskManager implements TaskManager {
         if (epic != null) {
             for (Integer subtaskId : epic.getSubtasksIds()) {
                 subtasks.remove(subtaskId);
+                historyManager.remove(subtaskId);
             }
             epic.deleteAllSubtasksIds();
             epics.remove(id);
+            historyManager.remove(epic.getId());
         }
     }
 
     @Override
     public void deleteSubtaskById(int id) {
         subtasks.remove(id);
+        historyManager.remove(id);
     }
 
     @Override
@@ -173,6 +182,13 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public List<Task> getHistory() {
-        return  historyManager.getHistory();
+        return historyManager.getHistory();
+    }
+
+    private <T extends Task> void clearCollection(Map<Integer, T> collection) {
+        for (T task : collection.values()) {
+            historyManager.remove(task.getId());
+        }
+        collection.clear();
     }
 }
