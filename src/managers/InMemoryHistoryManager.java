@@ -1,5 +1,7 @@
 package managers;
 
+import model.Epic;
+import model.Subtask;
 import model.Task;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,6 +52,7 @@ public class InMemoryHistoryManager implements HistoryManager {
         return tasks;
     }
 
+
     @Override
     public void add(Task task) {
         if (task == null) {
@@ -59,7 +62,16 @@ public class InMemoryHistoryManager implements HistoryManager {
         if (nodeMap.containsKey(taskId)) {
             removeNode(nodeMap.get(taskId));
         }
-        linkLast(new Task(task));
+        // Создаем копию задачи перед добавлением в историю
+        Task taskCopy;
+        if (task instanceof Subtask) {
+            taskCopy = new Subtask((Subtask) task);
+        } else if (task instanceof Epic) {
+            taskCopy = new Epic((Epic) task);
+        } else {
+            taskCopy = new Task(task);
+        }
+        linkLast(taskCopy);
     }
 
     @Override
