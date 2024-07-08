@@ -1,6 +1,7 @@
 package model;
 
 import model.enums.TaskStatus;
+import model.enums.TaskType;
 
 import java.util.Objects;
 
@@ -10,6 +11,7 @@ public class Task {
     protected String name;
     protected String description;
     protected TaskStatus status;
+    private final TaskType taskType = TaskType.TASK;
 
     public Task(String name, String description) {
         this.id = idCounter;

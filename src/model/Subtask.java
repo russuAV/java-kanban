@@ -1,11 +1,13 @@
 package model;
 
 import model.enums.TaskStatus;
+import model.enums.TaskType;
 
 import java.util.Objects;
 
 public class Subtask extends Task {
     private final int epicId;
+    private final TaskType taskType = TaskType.SUBTASK;
 
     public Subtask(String name, String description, int epicId) {
         super(name, description);

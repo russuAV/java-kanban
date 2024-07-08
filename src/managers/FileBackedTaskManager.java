@@ -5,6 +5,7 @@ import model.Epic;
 import model.Subtask;
 import model.Task;
 import model.enums.TaskStatus;
+import model.enums.TaskType;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -133,42 +134,46 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             writer.write(historyToString(getHistoryManager()));
 
         } catch (IOException e) {
-            throw new ManagerSaveException("Ошибка сохранения данных", e);
+            throw new ManagerSaveException("Ошибка сохранения данных в файл: " + file.getName(), e);
         }
     }
 
     public String taskToString(Task task) {
         if (task instanceof Subtask) {
             Subtask subtask = (Subtask) task;
-            return String.format("%d,SUBTASK,%s,%s,%s,%d",
-                    subtask.getId(), subtask.getName(), subtask.getStatus(), subtask.getDescription(), subtask.getEpicId());
+            return String.format("%d,%s,%s,%s,%s,%d",
+                    subtask.getId(), TaskType.SUBTASK, subtask.getName(), subtask.getStatus(), subtask.getDescription(), subtask.getEpicId());
         } else if (task instanceof Epic) {
             Epic epic = (Epic) task;
-            return String.format("%d,EPIC,%s,%s,%s,",
-                    epic.getId(), epic.getName(), epic.getStatus(), epic.getDescription());
+            return String.format("%d,%s,%s,%s,%s,",
+                    epic.getId(), TaskType.EPIC, epic.getName(), epic.getStatus(), epic.getDescription());
         } else {
-            return String.format("%d,TASK,%s,%s,%s,",
-                    task.getId(), task.getName(), task.getStatus(), task.getDescription());
+            return String.format("%d,%s,%s,%s,%s,",
+                    task.getId(), TaskType.TASK, task.getName(), task.getStatus(), task.getDescription());
         }
     }
 
     private static Task taskFromString(String value) {
         String[] fields = value.split(",");
         int id = Integer.parseInt(fields[0]);
-        String type = fields[1];
+        TaskType type = TaskType.valueOf(fields[1]);
         String name = fields[2];
         TaskStatus status = TaskStatus.valueOf(fields[3]);
         String description = fields[4];
-        switch (type) {
-            case "TASK":
-                return new Task(id, name, description, status);
-            case "EPIC":
-                return new Epic(id, name, description, status);
-            case "SUBTASK":
-                int epicId = Integer.parseInt(fields[5]);
-                return new Subtask(id, name, description, status, epicId);
-            default:
-                throw new IllegalArgumentException("Неизвестный тип задачи: " + type);
+        try {
+            switch (type) {
+                case TASK:
+                    return new Task(id, name, description, status);
+                case EPIC:
+                    return new Epic(id, name, description, status);
+                case SUBTASK:
+                    int epicId = Integer.parseInt(fields[5]);
+                    return new Subtask(id, name, description, status, epicId);
+                default:
+                    throw new IllegalArgumentException("Неизвестный тип задачи: " + type);
+            }
+        } catch (NumberFormatException e) {
+            throw new ManagerSaveException("Ошибка формата данных для строки: " + value, e);
         }
     }
 
@@ -210,9 +215,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 }
             }
         } catch (IOException e) {
-            throw new ManagerSaveException("Ошибка загрузки данных", e);
+            throw new ManagerSaveException("Ошибка загрузки данных из файла: " + file.getName(), e);
         } catch (NumberFormatException e) {
-            throw new ManagerSaveException("Ошибка формата данных", e);
+            throw new ManagerSaveException("Ошибка формата данных в файле: " + file.getName(), e);
         }
         return manager;
     }
