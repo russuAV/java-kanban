@@ -1,13 +1,21 @@
 package model;
 
+import model.enums.TaskStatus;
+import model.enums.TaskType;
+
 import java.util.ArrayList;
 import java.util.Objects;
 
 public class Epic extends Task {
     protected ArrayList<Integer> subtaskIds = new ArrayList<>();
+    private final TaskType taskType = TaskType.EPIC;
 
     public Epic(String name, String description) {
         super(name, description);
+    }
+
+    public Epic(int id, String name, String description, TaskStatus status) {
+        super(id, name, description, status);
     }
 
     public Epic(Epic epic) {
