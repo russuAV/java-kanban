@@ -30,7 +30,7 @@ public class Task {
         this.description = description;
         this.status = TaskStatus.NEW;
         this.duration = duration;
-        this.startTime =startTime;
+        this.startTime = startTime;
     }
 
     public Task(int id, String name, String description, Duration duration, LocalDateTime startTime, TaskStatus status) {
