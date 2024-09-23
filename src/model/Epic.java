@@ -76,6 +76,11 @@ public class Epic extends Task {
     }
 
     @Override
+    public TaskType getTaskType() {
+        return taskType;
+    }
+
+    @Override
     public Duration getDuration() {
         return duration;
     }

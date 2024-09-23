@@ -10,6 +10,7 @@ import model.enums.TaskType;
 import java.io.*;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -141,25 +142,17 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     public String taskToString(Task task) {
-        if (task instanceof Subtask) {
-            Subtask subtask = (Subtask) task;
-            return String.format("%d,%s,%s,%s,%s,%s,%s,%d",
-                    subtask.getId(), TaskType.SUBTASK, subtask.getName(), subtask.getStatus(), subtask.getDescription(),
-                    subtask.getStartTime() != null ? subtask.getStartTime().toString() : "",
-                    subtask.getDuration() != null ? subtask.getDuration().toMinutes() : "",
-                    subtask.getEpicId());
-        } else if (task instanceof Epic) {
-            Epic epic = (Epic) task;
-            return String.format("%d,%s,%s,%s,%s,%s,%s,",
-                    epic.getId(), TaskType.EPIC, epic.getName(), epic.getStatus(), epic.getDescription(),
-                    epic.getStartTime() != null ? epic.getStartTime().toString() : "",
-                    epic.getDuration() != null ? epic.getDuration().toMinutes() : "");
-        } else {
-            return String.format("%d,%s,%s,%s,%s,%s,%s,",
-                    task.getId(), TaskType.TASK, task.getName(), task.getStatus(), task.getDescription(),
-                    task.getStartTime() != null ? task.getStartTime().toString() : "",
-                    task.getDuration() != null ? task.getDuration().toMinutes() : "");
-        }
+        String[] fields = {
+                String.valueOf(task.getId()),
+                task.getTaskType().toString(),
+                task.getName(),
+                task.getStatus().toString(),
+                task.getDescription(),
+                task.getStartTime() != null ? task.getStartTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : "",
+                task.getDuration() != null ? String.valueOf(task.getDuration().toMinutes()) : "",
+                (task instanceof Subtask) ? String.valueOf(((Subtask) task).getEpicId()) : ""
+        };
+        return String.join(",", fields);
     }
 
     private static Task taskFromString(String value) {
