@@ -3,6 +3,8 @@ package model;
 import model.enums.TaskStatus;
 import model.enums.TaskType;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class Subtask extends Task {
@@ -14,18 +16,34 @@ public class Subtask extends Task {
         this.epicId = epicId;
     }
 
+    public Subtask(String name, String description, Duration duration, LocalDateTime startTime, int epicId) {
+        super(name, description, duration, startTime);
+        this.epicId = epicId;
+    }
+
     public Subtask(Subtask subtask) {
         super(subtask);
         this.epicId = subtask.epicId;
     }
 
     public Subtask(int id, String name, String description, TaskStatus status, int epicId) {
-        super(id, name, description, status);
+        super(id, name, description, Duration.ZERO, null, status);
+        this.epicId = epicId;
+    }
+
+    public Subtask(int id, String name, String description, TaskStatus status, Duration duration,
+                   LocalDateTime startTime, int epicId) {
+        super(id, name, description, duration, startTime, status);
         this.epicId = epicId;
     }
 
     public int getEpicId() {
         return epicId;
+    }
+
+    @Override
+    public TaskType getTaskType() {
+        return taskType;
     }
 
     @Override
@@ -36,20 +54,23 @@ public class Subtask extends Task {
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", status=" + status +
+                ", duration=" + duration +
+                ", startTime=" + startTime +
                 '}';
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof Subtask subtask)) return false;
         if (!super.equals(o)) return false;
-        Subtask subtask = (Subtask) o;
-        return epicId == subtask.epicId;
+        return getEpicId() == subtask.getEpicId() && taskType == subtask.taskType;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), epicId);
+        return Objects.hash(super.hashCode(), getEpicId(), taskType);
     }
 }
+
+
