@@ -11,23 +11,26 @@ import java.util.Objects;
 
 public class Epic extends Task {
     protected ArrayList<Integer> subtaskIds = new ArrayList<>();
-    private final TaskType taskType = TaskType.EPIC;
     private LocalDateTime endTime;
 
     public Epic(String name, String description) {
         super(name, description);
+        this.taskType = TaskType.EPIC;
+        this.subtaskIds = new ArrayList<>();
     }
 
     public Epic(int id, String name, String description, TaskStatus status) {
         super(id, name, description, Duration.ZERO, null, status);
+        this.taskType = TaskType.EPIC;
     }
 
     public Epic(Epic epic) {
         super(epic);
-        this.subtaskIds = new ArrayList<>(epic.subtaskIds);
+        this.subtaskIds = (epic.subtaskIds.isEmpty()) ? new ArrayList<>() : new ArrayList<>(epic.subtaskIds);
         this.duration = epic.duration;
         this.startTime = epic.startTime;
         this.endTime = epic.endTime;
+        this.taskType = TaskType.EPIC;
     }
 
     public ArrayList<Integer> getSubtasksIds() {
@@ -35,6 +38,9 @@ public class Epic extends Task {
     }
 
     public void addSubtaskIds(Subtask newSubtask) {
+        if (subtaskIds == null) {
+            subtaskIds = new ArrayList<>();
+        }
         if (!subtaskIds.contains(newSubtask.getId())) {
             subtaskIds.add(newSubtask.getId());
         }

@@ -127,6 +127,9 @@ public class InMemoryTaskManager implements TaskManager {
         if (isTimeOverlapping(newTask)) {
             throw new IllegalArgumentException("Задача пересекается по времени с существующей.");
         }
+        if (newTask.getId() == 0) {
+            newTask.setId();
+        }
         tasks.put(newTask.getId(), newTask);
         if (newTask.getStartTime() != null && newTask.getDuration() != null) {
             prioritizedTasks.add(newTask);
@@ -136,12 +139,18 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Epic addEpic(Epic newEpic) {
+        if (newEpic.getId() == 0) {
+            newEpic.setId();
+        }
         epics.put(newEpic.getId(), newEpic);
         return newEpic;
     }
 
     @Override
     public Subtask addSubtask(Subtask newSubtask) {
+        if (newSubtask.getId() == 0) {
+            newSubtask.setId();
+        }
         if (epics.containsKey(newSubtask.getEpicId())) {
             if (isTimeOverlapping(newSubtask)) {
                 throw new IllegalArgumentException("Подзадача пересекается по времени с существующей.");

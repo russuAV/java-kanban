@@ -15,7 +15,7 @@ public class Task {
     protected Duration duration;
     protected LocalDateTime startTime;
     protected TaskStatus status;
-    private final TaskType taskType = TaskType.TASK;
+    protected TaskType taskType = TaskType.TASK;
 
     public Task(String name, String description) {
         this.id = idCounter++;
@@ -80,6 +80,14 @@ public class Task {
 
     public int getId() {
         return id;
+    }
+
+    public void setId() {
+        this.id = idCounter++;
+    }
+
+    public void setId(int id) { // для тестов
+        this.id = id;
     }
 
     public String getName() {
