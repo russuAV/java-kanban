@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 
 public abstract class BaseHttpHandler implements HttpHandler {
     Gson gson = new Gson();
+
     protected void sendResponse(HttpExchange exchange, String responseText, int statusCode) throws IOException {
         byte[] bytes = responseText.getBytes(StandardCharsets.UTF_8);
         exchange.getResponseHeaders().add("Content-Type", "application/json; charset=utf-8");

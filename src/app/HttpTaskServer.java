@@ -1,7 +1,7 @@
 package app;
 
-import Adapters.DurationAdapter;
-import Adapters.LocalDateTimeAdapter;
+import adapters.DurationAdapter;
+import adapters.LocalDateTimeAdapter;
 import handlers.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
