@@ -1,11 +1,11 @@
 package app;
 
+import com.google.gson.*;
 import managers.TaskManager;
 import model.Epic;
 import model.Subtask;
 import model.Task;
 import org.junit.jupiter.api.*;
-import com.google.gson.Gson;
 
 import java.io.IOException;
 import java.net.URI;
@@ -14,7 +14,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -457,5 +459,174 @@ class HttpTaskServerTest {
         // Проверяем, что подзадача удалена из менеджера
         Subtask deletedSubtask = taskManager.getSubtaskById(subtask.getId());
         assertNull(deletedSubtask, "Подзадача не была удалена из менеджера.");
+    }
+
+    @Test
+    void testAddTaskWithEmptyBody() throws IOException, InterruptedException {
+        URI url = URI.create("http://localhost:8080/tasks");
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(url)
+                .POST(HttpRequest.BodyPublishers.noBody())
+                .header("Content-Type", "application/json")
+                .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(400, response.statusCode(), "Сервер должен вернуть 400 при отсутствии тела запроса.");
+    }
+
+    @Test
+    void testInvalidMethod() throws IOException, InterruptedException {
+        URI url = URI.create("http://localhost:8080/tasks");
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(url)
+                .method("PUT", HttpRequest.BodyPublishers.noBody())
+                .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(405, response.statusCode(), "Сервер должен вернуть 405 при использовании неподдерживаемого метода.");
+    }
+
+    @Test
+    void testGetTaskByNonExistingId() throws IOException, InterruptedException {
+        URI url = URI.create("http://localhost:8080/tasks?id=999");
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(url)
+                .GET()
+                .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(404, response.statusCode(), "Сервер должен вернуть 404, если задача не найдена.");
+    }
+
+    @Test
+    void testDeleteEpicWithSubtasks() throws IOException, InterruptedException {
+        Epic epic = new Epic("Epic with Subtasks", "Description");
+        taskManager.addEpic(epic);
+
+        Subtask subtask1 = new Subtask("Subtask 1", "Description",
+                Duration.ofMinutes(30), LocalDateTime.now(), epic.getId());
+        Subtask subtask2 = new Subtask("Subtask 2", "Description",
+                Duration.ofMinutes(45), LocalDateTime.now().plusHours(1), epic.getId());
+        taskManager.addSubtask(subtask1);
+        taskManager.addSubtask(subtask2);
+
+        URI url = URI.create("http://localhost:8080/epics?id=" + epic.getId());
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(url)
+                .DELETE()
+                .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(200, response.statusCode(), "Эпик не был удалён успешно.");
+
+        Epic deletedEpic = taskManager.getEpicById(epic.getId());
+        assertNull(deletedEpic, "Эпик не был удалён из менеджера.");
+
+        Subtask deletedSubtask1 = taskManager.getSubtaskById(subtask1.getId());
+        Subtask deletedSubtask2 = taskManager.getSubtaskById(subtask2.getId());
+        assertNull(deletedSubtask1, "Подзадача 1 не была удалена вместе с эпиком.");
+        assertNull(deletedSubtask2, "Подзадача 2 не была удалена вместе с эпиком.");
+    }
+
+    @Test
+    void testGetHistory() throws IOException, InterruptedException {
+        Task task1 = new Task("Task 1", "Description",
+                Duration.ofMinutes(30), LocalDateTime.now());
+        Task task2 = new Task("Task 2", "Description",
+                Duration.ofMinutes(45), LocalDateTime.now().plusHours(1));
+        taskManager.addTask(task1);
+        taskManager.addTask(task2);
+
+        taskManager.getTaskById(task1.getId());
+        taskManager.getTaskById(task2.getId());
+
+        URI url = URI.create("http://localhost:8080/history");
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(url)
+                .GET()
+                .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(200, response.statusCode(), "Не удалось получить историю задач.");
+
+        Task[] history = gson.fromJson(response.body(), Task[].class);
+        assertEquals(2, history.length, "Количество задач в истории не соответствует ожидаемому.");
+        assertEquals(task1.getId(), history[0].getId(), "ID первой задачи в истории не соответствует ожидаемому.");
+        assertEquals(task2.getId(), history[1].getId(), "ID второй задачи в истории не соответствует ожидаемому.");
+    }
+
+    @Test
+    void testGetPrioritizedTasks() throws IOException, InterruptedException {
+        Task task1 = new Task("Task 1", "Description",
+                Duration.ofMinutes(30), LocalDateTime.of(2023, 5, 1, 10, 0));
+        Task task2 = new Task("Task 2", "Description",
+                Duration.ofMinutes(45), LocalDateTime.of(2023, 5, 1, 9, 0));
+        taskManager.addTask(task1);
+        taskManager.addTask(task2);
+
+        Epic epic1 = new Epic("Epic", "Description");
+        taskManager.addEpic(epic1);
+
+        Subtask subtask1 = new Subtask("Subtask 1", "Description",
+                Duration.ofMinutes(60), LocalDateTime.of(2023, 5, 1, 8, 0), epic1.getId());
+        Subtask subtask2 = new Subtask("Subtask 2", "Description",
+                Duration.ofMinutes(30), LocalDateTime.of(2023, 5, 1, 11, 0), epic1.getId());
+        taskManager.addSubtask(subtask1);
+        taskManager.addSubtask(subtask2);
+
+        URI url = URI.create("http://localhost:8080/prioritized");
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(url)
+                .GET()
+                .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(200, response.statusCode(), "Не удалось получить приоритезированные задачи.");
+
+        JsonArray tasksArray = JsonParser.parseString(response.body()).getAsJsonArray();
+        assertEquals(4, tasksArray.size(), "Количество задач не соответствует ожидаемому.");
+
+        List<Task> tasks = new ArrayList<>();
+        for (JsonElement element : tasksArray) {
+            JsonObject taskObject = element.getAsJsonObject();
+            String type = taskObject.get("taskType").getAsString();
+
+            switch (type) {
+                case "TASK":
+                    Task task = gson.fromJson(taskObject, Task.class);
+                    tasks.add(task);
+                    break;
+                case "SUBTASK":
+                    Subtask subtask = gson.fromJson(taskObject, Subtask.class);
+                    tasks.add(subtask);
+                    break;
+                case "EPIC":
+                    Epic epic = gson.fromJson(taskObject, Epic.class);
+                    tasks.add(epic);
+                    break;
+                default:
+                    fail("Неизвестный тип задачи: " + type);
+            }
+        }
+
+        List<LocalDateTime> startTimes = tasks.stream()
+                .map(Task::getStartTime)
+                .collect(Collectors.toList());
+
+        List<LocalDateTime> sortedStartTimes = new ArrayList<>(startTimes);
+        sortedStartTimes.sort(LocalDateTime::compareTo);
+
+        assertEquals(sortedStartTimes, startTimes, "Задачи не отсортированы по времени начала.");
+
+        assertEquals("Subtask 1", tasks.get(0).getName(), "Первая задача должна быть Subtask 1.");
+        assertEquals("Task 2", tasks.get(1).getName(), "Вторая задача должна быть Task 2.");
+        assertEquals("Task 1", tasks.get(2).getName(), "Третья задача должна быть Task 1.");
+        assertEquals("Subtask 2", tasks.get(3).getName(), "Четвертая задача должна быть Subtask 2.");
     }
 }

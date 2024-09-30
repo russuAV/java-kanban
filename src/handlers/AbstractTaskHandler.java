@@ -87,6 +87,10 @@ public abstract class AbstractTaskHandler<T extends Task> extends BaseHttpHandle
         String body = readRequestBody(exchange);
         T task = gson.fromJson(body, getTaskClass());
         try {
+            if (task == null) {
+                sendError(exchange, 400, "Тело запроса пустое или содержит некорректные данные.");
+                return;
+            }
             if (!checkThatCollectionHasSameId(task.getId())) {
                 addTask(task);
                 sendResponse(exchange, "Задача создана", 201);
